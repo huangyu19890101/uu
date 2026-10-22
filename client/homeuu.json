@@ -1,0 +1,31 @@
+{
+  "app_name": "homeuu",
+  "org": "com.homeuu",
+  "bundle_id": "com.homeuu.homeuu",
+  "manufacturer": "homeuu",
+
+  "_comment_ports": "必须与服务器 install.sh 使用的端口一致",
+  "rendezvous_port": 31116,
+  "relay_port": 31117,
+
+  "_comment_overwrite": "被控端强制设置：界面上显示为锁定，用户改不了。只保留画面、键鼠、文本剪贴板",
+  "overwrite_settings": {
+    "enable-keyboard": "Y",
+    "enable-clipboard": "Y",
+    "enable-file-transfer": "N",
+    "enable-audio": "N",
+    "enable-camera": "N",
+    "enable-terminal": "N",
+    "enable-tunnel": "N",
+    "enable-remote-printer": "N",
+    "enable-record-session": "N",
+    "enable-privacy-mode": "N",
+    "allow-remote-config-modification": "N",
+    "allow-auto-update": "N",
+    "verification-method": "use-permanent-password",
+    "approve-mode": "password"
+  },
+  "overwrite_local_settings": {
+    "enable-check-update": "N"
+  }
+}
