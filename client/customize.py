@@ -28,6 +28,17 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 
 
+def read(path):
+    """读文件，统一成 \n 换行；返回文本和原换行符（Windows 检出可能是 CRLF）。"""
+    raw = path.read_bytes().decode("utf-8")
+    eol = "\r\n" if "\r\n" in raw else "\n"
+    return raw.replace("\r\n", "\n"), eol
+
+
+def write(path, text, eol):
+    path.write_bytes(text.replace("\n", eol).encode("utf-8"))
+
+
 class Patcher:
     def __init__(self, root: Path):
         self.root = root
@@ -36,21 +47,21 @@ class Patcher:
     def sub(self, rel, old, new, count=1):
         """把 old 替换成 new。count 为期望出现次数，None 表示至少一次。"""
         path = self.root / rel
-        text = path.read_text(encoding="utf-8")
+        text, eol = read(path)
         n = text.count(old)
         if n == 0 or (count is not None and n != count):
             want = "至少 1" if count is None else str(count)
             sys.exit(f"[customize] {rel}: 期望找到 {want} 处 {old!r}，实际 {n} 处。RustDesk 源码可能已变化。")
-        path.write_text(text.replace(old, new), encoding="utf-8")
+        write(path, text.replace(old, new), eol)
         self.changed.add(rel)
 
     def re_sub(self, rel, pattern, new, count=1):
         path = self.root / rel
-        text = path.read_text(encoding="utf-8")
+        text, eol = read(path)
         result, n = re.subn(pattern, new, text)
         if n != count:
             sys.exit(f"[customize] {rel}: 期望匹配 {count} 处 /{pattern}/，实际 {n} 处。RustDesk 源码可能已变化。")
-        path.write_text(result, encoding="utf-8")
+        write(path, result, eol)
         self.changed.add(rel)
 
 
@@ -187,6 +198,9 @@ def verify_mac_labels(root: Path, org: str):
 
 
 def main():
+    # Windows 控制台默认 cp1252，打印中文会报 UnicodeEncodeError
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("rustdesk_dir", type=Path)
     ap.add_argument("--config", type=Path, default=HERE / "homeuu.json")
